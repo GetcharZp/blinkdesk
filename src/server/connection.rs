@@ -204,6 +204,7 @@ enum ConnAuditPrimaryAuth {
     TemporaryPassword = 2,
     PermanentPassword = 3,
     SwitchSides = 4,
+    LanPassword = 5,
 }
 
 impl ConnAuditPrimaryAuth {
@@ -2389,6 +2390,13 @@ impl Connection {
     }
 
     fn validate_password(&mut self, allow_permanent_password: bool) -> bool {
+        if crate::common::is_direct_ip_access(&self.lr.username) {
+            let lan_password = Config::get_option(keys::OPTION_LAN_PASSWORD);
+            if !lan_password.is_empty() && self.validate_password_plain(&lan_password) {
+                self.set_conn_audit_primary_auth(ConnAuditPrimaryAuth::LanPassword);
+                return true;
+            }
+        }
         if password::temporary_enabled() {
             let password = password::temporary_password();
             if self.validate_password_plain(&password) {

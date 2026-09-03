@@ -890,6 +890,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
             preventMouseKeyBuilder(
               block: locked,
               child: Column(children: [
+                _Card(title: 'Direct IP Access', children: directIp(context)),
                 permissions(context),
                 password(context),
                 _Card(title: '2FA', children: [tfa()]),
@@ -1289,7 +1290,6 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
       shareRdp(context, enabled),
       _OptionCheckBox(context, 'Deny LAN discovery', 'enable-lan-discovery',
           reverse: true, enabled: enabled),
-      ...directIp(context),
       whitelist(),
       idWhitelist(),
       ...autoDisconnect(context),
@@ -1332,64 +1332,97 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
   }
 
   List<Widget> directIp(BuildContext context) {
-    TextEditingController controller = TextEditingController();
+    TextEditingController portController = TextEditingController();
+    TextEditingController passwordController = TextEditingController();
     update(bool v) => setState(() {});
     RxBool applyEnabled = false.obs;
     return [
       _OptionCheckBox(context, 'Enable direct IP access', kOptionDirectServer,
-          update: update, enabled: !locked),
+          update: update,
+          enabled: !locked,
+          optSetter: (key, value) async {
+            if (value && passwordController.text.isEmpty) {
+              showToast(translate('Password Required'));
+              return;
+            }
+            await mainSetBoolOption(key, value);
+          }),
       () {
         // Simple temp wrapper for PR check
         tmpWrapper() {
           bool enabled = option2bool(kOptionDirectServer,
               bind.mainGetOptionSync(key: kOptionDirectServer));
-          if (!enabled) applyEnabled.value = false;
-          controller.text =
+          portController.text =
               bind.mainGetOptionSync(key: kOptionDirectAccessPort);
-          final isOptFixed = isOptionFixed(kOptionDirectAccessPort);
-          return Offstage(
-            offstage: !enabled,
-            child: _SubLabeledWidget(
+          passwordController.text =
+              bind.mainGetOptionSync(key: kOptionLanPassword);
+          final isOptFixedPort = isOptionFixed(kOptionDirectAccessPort);
+          final isOptFixedPassword = isOptionFixed(kOptionLanPassword);
+          return Column(children: [
+            _SubLabeledWidget(
               context,
               'Port',
-              Row(children: [
-                SizedBox(
-                  width: 95,
-                  child: TextField(
-                    controller: controller,
-                    enabled: enabled && !locked && !isOptFixed,
-                    onChanged: (_) => applyEnabled.value = true,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(
-                          r'^([0-9]|[1-9]\d|[1-9]\d{2}|[1-9]\d{3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$')),
-                    ],
-                    decoration: const InputDecoration(
-                      hintText: '21118',
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                    ),
-                  ).workaroundFreezeLinuxMint().marginOnly(right: 15),
-                ),
-                Obx(() => ElevatedButton(
-                      onPressed: applyEnabled.value &&
-                              enabled &&
-                              !locked &&
-                              !isOptFixed
-                          ? () async {
-                              applyEnabled.value = false;
-                              await bind.mainSetOption(
-                                  key: kOptionDirectAccessPort,
-                                  value: controller.text);
-                            }
-                          : null,
-                      child: Text(
-                        translate('Apply'),
-                      ),
-                    ))
-              ]),
-              enabled: enabled && !locked && !isOptFixed,
+              SizedBox(
+                width: 220,
+                child: TextField(
+                  controller: portController,
+                  enabled: !locked && !isOptFixedPort,
+                  onChanged: (_) => applyEnabled.value = true,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(
+                        r'^([0-9]|[1-9]\d|[1-9]\d{2}|[1-9]\d{3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$')),
+                  ],
+                  decoration: const InputDecoration(
+                    hintText: '21118',
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  ),
+                ).workaroundFreezeLinuxMint(),
+              ),
+              enabled: !locked && !isOptFixedPort,
             ),
-          );
+            _SubLabeledWidget(
+              context,
+              'Password',
+              SizedBox(
+                width: 220,
+                child: TextField(
+                  controller: passwordController,
+                  enabled: !locked && !isOptFixedPassword,
+                  obscureText: true,
+                  onChanged: (_) => applyEnabled.value = true,
+                  decoration: const InputDecoration(
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  ),
+                ).workaroundFreezeLinuxMint(),
+              ),
+              enabled: !locked && !isOptFixedPassword,
+            ).marginOnly(top: 6),
+            Obx(() => ElevatedButton(
+                  onPressed: applyEnabled.value &&
+                          !locked &&
+                          !isOptFixedPort &&
+                          !isOptFixedPassword
+                      ? () async {
+                          applyEnabled.value = false;
+                          if (enabled && passwordController.text.isEmpty) {
+                            showToast(translate('Password Required'));
+                            return;
+                          }
+                          await bind.mainSetOption(
+                              key: kOptionDirectAccessPort,
+                              value: portController.text);
+                          await bind.mainSetOption(
+                              key: kOptionLanPassword,
+                              value: passwordController.text);
+                        }
+                      : null,
+                  child: Text(
+                    translate('Apply'),
+                  ),
+                )).marginOnly(left: _kContentHSubMargin, top: 4),
+          ]);
         }
 
         return tmpWrapper();

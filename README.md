@@ -26,14 +26,15 @@ No rendezvous server, no relay server, no public network, no cloud account. Ever
 
 ## Features
 
-- **LAN-first connection** — connect directly by IP + port + username + password.
+- **LAN-first connection** — connect directly by IP + port + password.
+- **Local settings** — configure the listening port (default `21118`) and a required password, and enable or disable remote control at any time under *Settings → Security → Direct IP Access*.
 - **Low latency** — remote desktop control over the local network.
 - **Mature foundation** — built on the RustDesk codebase: screen capture, input control, clipboard, file transfer, and more.
 - **No server required** — peer-to-peer connection inside the LAN, nothing leaves the network.
 
 ### Roadmap
 
-- [ ] LAN direct connection (IP + port + username + password)
+- [x] LAN direct connection (IP + port + password)
 - [ ] SSH tunnel support
 - [ ] SOCKS5 proxy support
 - [ ] Connection history & favorites

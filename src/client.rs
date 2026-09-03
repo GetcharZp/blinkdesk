@@ -3578,6 +3578,19 @@ pub async fn handle_hash(
         try_get_password_from_personal_ab(lc.clone(), &mut password);
     }
 
+    // lan password for direct ip access
+    if password.is_empty() && crate::common::is_direct_ip_access(&lc.read().unwrap().id) {
+        let lan_password = Config::get_option(keys::OPTION_LAN_PASSWORD);
+        if !lan_password.is_empty() {
+            let mut hasher = Sha256::new();
+            hasher.update(lan_password.as_bytes());
+            hasher.update(&hash.salt);
+            let res = hasher.finalize();
+            password = res[..].into();
+            lc.write().unwrap().password_source = Default::default();
+        }
+    }
+
     if password.is_empty() {
         let p = crate::ui_interface::get_builtin_option(keys::OPTION_DEFAULT_CONNECT_PASSWORD);
         if !p.is_empty() {
