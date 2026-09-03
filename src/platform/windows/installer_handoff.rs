@@ -60,7 +60,7 @@ fn prepare_install_commands(commands: &str) -> ResultType<String> {
          {}\r\n\
          if exist \"%~f0.dir\" exit /b {BATCH_OUTPUT_DIRECTORY_EXISTS_EXIT_CODE}\r\n\
          md \"%~f0.dir\" || exit /b {BATCH_OUTPUT_DIRECTORY_CREATE_FAILURE_EXIT_CODE}\r\n\
-         set \"RUSTDESK_OUTPUT_DIR=%~f0.dir\"\r\n{commands}\r\nexit /b 0\r\n",
+         set \"BLINKDESK_OUTPUT_DIR=%~f0.dir\"\r\n{commands}\r\nexit /b 0\r\n",
         trusted_install_environment()?
     ))
 }
@@ -71,7 +71,7 @@ fn write_install_script(cmds: String) -> ResultType<InstallCommandScript> {
     let commands = prepare_install_commands(&cmds)?;
     let expected_hash = Sha256::digest(commands.as_bytes()).into();
     let path = directory.join(format!(
-        "rustdesk_install_{}.bat",
+        "blinkdesk_install_{}.bat",
         uuid::Uuid::new_v4().simple()
     ));
     let mut file = fs::OpenOptions::new()
@@ -100,7 +100,7 @@ fn verified_install_bootstrap(
 ) -> ResultType<String> {
     let source = path_for_cmd_assignment(&script.path)?;
     let runner = runner_directory.join(format!(
-        "rustdesk_install_{}.bat",
+        "blinkdesk_install_{}.bat",
         uuid::Uuid::new_v4().simple()
     ));
     let runner = path_for_cmd_assignment(&runner)?;
@@ -184,16 +184,16 @@ mod tests {
     #[test]
     fn native_install_handoff_verifies_before_execution() {
         let marker = std::env::temp_dir().join(format!(
-            "rustdesk_install_marker_{}",
+            "blinkdesk_install_marker_{}",
             uuid::Uuid::new_v4().simple()
         ));
         let runner_dir = std::env::temp_dir().join(format!(
-            "rustdesk_install_!RUSTDESK_HANDOFF_EXPAND!&^@()runner_{}",
+            "blinkdesk_install_!RUSTDESK_HANDOFF_EXPAND!&^@()runner_{}",
             uuid::Uuid::new_v4().simple()
         ));
         std::fs::create_dir(&runner_dir).expect("runner directory should be created");
         let shortcut_commands = embedded_shortcut_commands(
-            shortcut_bytes(r"C:\RustDesk.exe", None, None)
+            shortcut_bytes(r"C:\BlinkDesk.exe", None, None)
                 .expect("native shortcut should be generated"),
             "test.lnk",
             "test",

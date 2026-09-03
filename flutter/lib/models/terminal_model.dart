@@ -130,7 +130,7 @@ class TerminalModel with ChangeNotifier {
   }
 
   TerminalModel(this.parent, [this.terminalId = 0]) : id = parent.id {
-    terminal = RustDeskTerminal(maxLines: 10000);
+    terminal = BlinkDeskTerminal(maxLines: 10000);
     terminal.mouseHandler = const WheelButtonFixMouseHandler();
     terminalController = TerminalController();
 

@@ -1,7 +1,7 @@
 import 'package:xterm/xterm.dart';
 
-class RustDeskTerminal extends Terminal {
-  RustDeskTerminal({super.maxLines});
+class BlinkDeskTerminal extends Terminal {
+  BlinkDeskTerminal({super.maxLines});
 
   @override
   void eraseScrollbackOnly() {

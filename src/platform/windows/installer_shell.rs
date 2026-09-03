@@ -76,7 +76,7 @@ pub(super) fn embedded_shortcut_commands(bytes: Vec<u8>, filename: &str, name: &
     let encoded_path = format!("%~f0.{name}.b64");
     format!(
         "> \"{encoded_path}\" echo {encoded}\r\n\
-         certutil -f -decode \"{encoded_path}\" \"%RUSTDESK_OUTPUT_DIR%\\{filename}\" > nul || exit /b {BATCH_SHORTCUT_DECODE_FAILURE_EXIT_CODE}"
+         certutil -f -decode \"{encoded_path}\" \"%BLINKDESK_OUTPUT_DIR%\\{filename}\" > nul || exit /b {BATCH_SHORTCUT_DECODE_FAILURE_EXIT_CODE}"
     )
 }
 

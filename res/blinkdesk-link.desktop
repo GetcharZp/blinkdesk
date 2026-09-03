@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=BlinkDesk
+NoDisplay=true
+MimeType=x-scheme-handler/blinkdesk;
+TryExec=blinkdesk
+Exec=blinkdesk %u
+Icon=blinkdesk
+Terminal=false
+Type=Application
+StartupNotify=false
+StartupWMClass=blinkdesk

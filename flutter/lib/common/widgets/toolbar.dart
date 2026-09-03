@@ -495,7 +495,7 @@ List<TTextMenu> toolbarControls(BuildContext context, String id, FFI ffi) {
               // Web: login is required before connection, so no need to refresh
               // Mobile: same isolate, no need to send message
               if (isDesktop) {
-                rustDeskWinManager.call(
+                blinkDeskWinManager.call(
                     WindowType.Main, kWindowRefreshCurrentUser, "");
               }
             }
@@ -1258,7 +1258,7 @@ List<Widget> getVirtualDisplayMenuChildren(
   final pi = ffi.ffiModel.pi;
   final privacyModeState = PrivacyModeState.find(id);
   if (pi.isRustDeskIdd) {
-    final virtualDisplays = ffi.ffiModel.pi.RustDeskVirtualDisplays;
+    final virtualDisplays = ffi.ffiModel.pi.BlinkDeskVirtualDisplays;
     final children = <Widget>[];
     for (var i = 0; i < kMaxVirtualDisplayCount; i++) {
       children.add(Obx(() => CkbMenuButton(

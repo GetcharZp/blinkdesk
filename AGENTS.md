@@ -1,4 +1,4 @@
-# RustDesk Guide
+# BlinkDesk Guide
 
 ## Project Layout
 

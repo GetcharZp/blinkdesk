@@ -1,15 +1,15 @@
 [package]
-name = "rustdesk"
+name = "blinkdesk"
 version = "1.4.9"
-authors = ["rustdesk <info@rustdesk.com>"]
+authors = ["BlinkDesk Contributors"]
 edition = "2021"
 build= "build.rs"
-description = "RustDesk Remote Desktop"
-default-run = "rustdesk"
+description = "BlinkDesk Remote Desktop"
+default-run = "blinkdesk"
 rust-version = "1.75"
 
 [lib]
-name = "librustdesk"
+name = "libblinkdesk"
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [[bin]]
@@ -252,3 +252,6 @@ rpath = true
 
 [profile.dev]
 debug = 1
+
+[profile.dev.package.sciter-rs]
+debug-assertions = false

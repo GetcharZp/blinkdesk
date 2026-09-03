@@ -1,8 +1,8 @@
 [package]
-name = "rustdesk-portable-packer"
+name = "blinkdesk-portable-packer"
 version = "1.4.9"
 edition = "2021"
-description = "RustDesk Remote Desktop"
+description = "BlinkDesk Remote Desktop"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -27,7 +27,7 @@ native-windows-gui = {version = "1.0", default-features = false, features = ["an
 
 [package.metadata.winres]
 LegalCopyright = "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved."
-ProductName = "RustDesk"
+ProductName = "BlinkDesk"
 OriginalFilename = "rustdesk.exe"
 FileDescription = "RustDesk Remote Desktop"
 #ProductVersion = ""
