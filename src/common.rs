@@ -2391,12 +2391,11 @@ pub fn get_hwid() -> Bytes {
 
 #[inline]
 pub fn get_builtin_option(key: &str) -> String {
-    config::BUILTIN_SETTINGS
-        .read()
-        .unwrap()
-        .get(key)
-        .cloned()
-        .unwrap_or_default()
+    let settings = config::BUILTIN_SETTINGS.read().unwrap();
+    if key == config::keys::OPTION_HIDE_POWERED_BY_ME && !settings.contains_key(key) {
+        return "Y".to_owned();
+    }
+    settings.get(key).cloned().unwrap_or_default()
 }
 
 #[inline]
