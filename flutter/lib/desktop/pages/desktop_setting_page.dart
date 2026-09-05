@@ -1803,7 +1803,14 @@ class _NetworkState extends State<_Network> with AutomaticKeepAliveClientMixin {
                   title: 'Socks5/Http(s) Proxy',
                   onTap: changeSocks5Proxy,
                 ),
-              if (!hideWebSocket && (!hideServer || !hideProxy)) divider,
+              if (!isWeb)
+                listTile(
+                  icon: Icons.vpn_key_outlined,
+                  title: 'SSH Tunnel',
+                  onTap: changeSshTunnel,
+                ),
+              if (!hideWebSocket && (!hideServer || !hideProxy || !isWeb))
+                divider,
               if (!hideWebSocket)
                 switchWidget(
                     Icons.web_asset_outlined,
@@ -1819,7 +1826,7 @@ class _NetworkState extends State<_Network> with AutomaticKeepAliveClientMixin {
                     } else {
                       return Column(
                         children: [
-                          if (!hideServer || !hideProxy || !hideWebSocket)
+                          if (!hideServer || !hideProxy || !hideWebSocket || !isWeb)
                             divider,
                           switchWidget(
                               Icons.no_encryption_outlined,
@@ -3208,6 +3215,211 @@ void changeSocks5Proxy() async {
       actions: [
         dialogButton('Cancel', onPressed: close, isOutline: true),
         if (!isOptFixed) dialogButton('OK', onPressed: submit),
+      ],
+      onSubmit: submit,
+      onCancel: close,
+    );
+  });
+}
+
+void changeSshTunnel() async {
+  var ssh = await bind.mainGetSshTunnel();
+
+  String host = '';
+  String port = '';
+  String username = '';
+  String password = '';
+  String privateKey = '';
+  if (ssh.length == 5) {
+    host = ssh[0];
+    port = ssh[1] == '0' ? '' : ssh[1];
+    username = ssh[2];
+    password = ssh[3];
+    privateKey = ssh[4];
+  }
+  var hostController = TextEditingController(text: host);
+  var portController = TextEditingController(text: port);
+  var userController = TextEditingController(text: username);
+  var pwdController = TextEditingController(text: password);
+  var keyController = TextEditingController(text: privateKey);
+  RxBool obscure = true.obs;
+
+  var testMsg = '';
+  var isInProgress = false;
+  gFFI.dialogManager.show((setState, close, context) {
+    testConnection() async {
+      setState(() {
+        testMsg = '';
+        isInProgress = true;
+      });
+      final err = await bind.mainTestSshTunnel(
+          host: hostController.text.trim(),
+          port: portController.text.trim(),
+          username: userController.text.trim(),
+          password: pwdController.text,
+          privateKey: keyController.text.trim());
+      setState(() {
+        testMsg = err;
+        isInProgress = false;
+      });
+      return err;
+    }
+
+    submit() async {
+      if (hostController.text.trim().isEmpty) {
+        return;
+      }
+      final err = await testConnection();
+      if (err.isNotEmpty) {
+        return;
+      }
+      await bind.mainSetSshTunnel(
+          host: hostController.text.trim(),
+          port: portController.text.trim(),
+          username: userController.text.trim(),
+          password: pwdController.text,
+          privateKey: keyController.text.trim());
+      close();
+    }
+
+    return CustomAlertDialog(
+      title: Text('SSH Tunnel'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 500),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (!isMobile)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 140),
+                    child: Text(
+                      '${translate("Server")}:',
+                      textAlign: TextAlign.right,
+                    ).marginOnly(right: 10),
+                  ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: isMobile ? translate('Server') : null,
+                      helperText: isMobile ? 'e.g. 1.2.3.4' : null,
+                      helperMaxLines: isMobile ? 3 : null,
+                    ),
+                    controller: hostController,
+                    autofocus: true,
+                  ).workaroundFreezeLinuxMint(),
+                ),
+              ],
+            ).marginOnly(bottom: 8),
+            Row(
+              children: [
+                if (!isMobile)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 140),
+                    child: Text(
+                      'Port:',
+                      textAlign: TextAlign.right,
+                    ).marginOnly(right: 10),
+                  ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: isMobile ? 'Port' : null,
+                      hintText: '22',
+                    ),
+                    controller: portController,
+                    keyboardType: TextInputType.number,
+                  ).workaroundFreezeLinuxMint(),
+                ),
+              ],
+            ).marginOnly(bottom: 8),
+            Row(
+              children: [
+                if (!isMobile)
+                  ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 140),
+                      child: Text(
+                        '${translate("Username")}:',
+                        textAlign: TextAlign.right,
+                      ).marginOnly(right: 10)),
+                Expanded(
+                  child: TextField(
+                    controller: userController,
+                    decoration: InputDecoration(
+                      labelText: isMobile ? translate('Username') : null,
+                    ),
+                  ).workaroundFreezeLinuxMint(),
+                ),
+              ],
+            ).marginOnly(bottom: 8),
+            Row(
+              children: [
+                if (!isMobile)
+                  ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 140),
+                      child: Text(
+                        '${translate("Password")}:',
+                        textAlign: TextAlign.right,
+                      ).marginOnly(right: 10)),
+                Expanded(
+                  child: Obx(() => TextField(
+                        obscureText: obscure.value,
+                        decoration: InputDecoration(
+                            labelText: isMobile ? translate('Password') : null,
+                            suffixIcon: IconButton(
+                                onPressed: () => obscure.value = !obscure.value,
+                                icon: Icon(obscure.value
+                                    ? Icons.visibility_off
+                                    : Icons.visibility))),
+                        controller: pwdController,
+                      ).workaroundFreezeLinuxMint()),
+                ),
+              ],
+            ).marginOnly(bottom: 8),
+            Row(
+              children: [
+                if (!isMobile)
+                  ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 140),
+                      child: Text(
+                        'Private Key:',
+                        textAlign: TextAlign.right,
+                      ).marginOnly(right: 10)),
+                Expanded(
+                  child: TextField(
+                    controller: keyController,
+                    decoration: InputDecoration(
+                      labelText: isMobile ? 'Private Key' : null,
+                      helperText: isMobile
+                          ? 'optional, private key file path'
+                          : null,
+                      helperMaxLines: isMobile ? 3 : null,
+                    ),
+                  ).workaroundFreezeLinuxMint(),
+                ),
+              ],
+            ).marginOnly(bottom: 8),
+            if (testMsg.isNotEmpty)
+              Text(
+                testMsg,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            // NOT use Offstage to wrap LinearProgressIndicator
+            if (isInProgress)
+              const LinearProgressIndicator().marginOnly(top: 8),
+          ],
+        ),
+      ),
+      actions: [
+        dialogButton('Cancel', onPressed: close, isOutline: true),
+        dialogButton('Test',
+            onPressed: isInProgress
+                ? null
+                : () async {
+                    await testConnection();
+                  }),
+        dialogButton('OK', onPressed: isInProgress ? null : submit),
       ],
       onSubmit: submit,
       onCancel: close,

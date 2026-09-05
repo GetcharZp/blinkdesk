@@ -803,6 +803,30 @@ class BlinkdeskImpl {
     throw UnimplementedError("mainGetSocks");
   }
 
+  Future<void> mainSetSshTunnel(
+      {required String host,
+      required String port,
+      required String username,
+      required String password,
+      required String privateKey,
+      dynamic hint}) {
+    throw UnimplementedError("mainSetSshTunnel");
+  }
+
+  Future<List<String>> mainGetSshTunnel({dynamic hint}) {
+    throw UnimplementedError("mainGetSshTunnel");
+  }
+
+  Future<String> mainTestSshTunnel(
+      {required String host,
+      required String port,
+      required String username,
+      required String password,
+      required String privateKey,
+      dynamic hint}) {
+    throw UnimplementedError("mainTestSshTunnel");
+  }
+
   Future<String> mainGetAppName({dynamic hint}) {
     return Future.value(mainGetAppNameSync(hint: hint));
   }

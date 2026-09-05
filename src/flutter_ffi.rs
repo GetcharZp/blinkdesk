@@ -1075,6 +1075,30 @@ pub fn main_get_socks() -> Vec<String> {
     get_socks()
 }
 
+pub fn main_set_ssh_tunnel(
+    host: String,
+    port: String,
+    username: String,
+    password: String,
+    private_key: String,
+) {
+    set_ssh_tunnel(host, port, username, password, private_key)
+}
+
+pub fn main_get_ssh_tunnel() -> Vec<String> {
+    get_ssh_tunnel()
+}
+
+pub fn main_test_ssh_tunnel(
+    host: String,
+    port: String,
+    username: String,
+    password: String,
+    private_key: String,
+) -> String {
+    test_ssh_tunnel(host, port, username, password, private_key)
+}
+
 pub fn main_get_app_name() -> String {
     get_app_name()
 }

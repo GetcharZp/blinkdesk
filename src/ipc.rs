@@ -364,6 +364,9 @@ pub enum Data {
     ConfirmedKey(Option<(Vec<u8>, Vec<u8>)>),
     RawMessage(Vec<u8>),
     Socks(Option<config::Socks5Server>),
+    SshTunnel(Option<config::SshTunnel>),
+    TestSshTunnel(Option<Box<config::SshTunnel>>),
+    TestSshTunnelResult(Option<String>),
     FS(FS),
     Test,
     SyncConfig(Option<Box<(Config, Config2)>>),
@@ -864,7 +867,7 @@ async fn handle(data: Data, stream: &mut Connection) {
         }
         Data::Socks(s) => match s {
             None => {
-                allow_err!(stream.send(&Data::Socks(Config::get_socks())).await);
+                allow_err!(stream.send(&Data::Socks(Config::get_socks_configured())).await);
             }
             Some(data) => {
                 let _nat = CheckTestNatType::new();
@@ -877,6 +880,45 @@ async fn handle(data: Data, stream: &mut Connection) {
                 log::info!("socks updated");
             }
         },
+        Data::SshTunnel(s) => match s {
+            None => {
+                allow_err!(stream.send(&Data::SshTunnel(Config::get_ssh_tunnel())).await);
+            }
+            Some(data) => {
+                let _nat = CheckTestNatType::new();
+                Config::set_ssh_tunnel(if data.host.trim().is_empty() {
+                    None
+                } else {
+                    Some(data)
+                });
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                crate::ssh_tunnel::refresh();
+                RendezvousMediator::restart();
+                log::info!("ssh tunnel updated");
+            }
+        },
+        Data::TestSshTunnel(s) => {
+            let cfg = s.map(|x| *x);
+            let result = if let Some(ref cfg) = cfg {
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                {
+                    match hbb_common::timeout(15_000, crate::ssh_tunnel::test(cfg)).await {
+                        Ok(Ok(())) => String::new(),
+                        Ok(Err(err)) => err.to_string(),
+                        Err(_) => "Connection timed out".to_owned(),
+                    }
+                }
+                #[cfg(any(target_os = "android", target_os = "ios"))]
+                {
+                    let _ = cfg;
+                    "Not supported on this platform".to_owned()
+                }
+            } else {
+                "Invalid configuration".to_owned()
+            };
+            allow_err!(stream.send(&Data::TestSshTunnelResult(Some(result))).await);
+        }
+        Data::TestSshTunnelResult(_) => {}
         Data::SocksWs(s) => match s {
             None => {
                 allow_err!(
@@ -1938,6 +1980,63 @@ pub async fn set_socks(value: config::Socks5Server) -> ResultType<()> {
         .send(&Data::Socks(Some(value)))
         .await?;
     Ok(())
+}
+
+#[inline]
+async fn get_ssh_tunnel_(ms_timeout: u64) -> ResultType<Option<config::SshTunnel>> {
+    let mut c = connect(ms_timeout, "").await?;
+    c.send(&Data::SshTunnel(None)).await?;
+    if let Some(Data::SshTunnel(value)) = c.next_timeout(ms_timeout).await? {
+        Config::set_ssh_tunnel(value.clone());
+        Ok(value)
+    } else {
+        Ok(Config::get_ssh_tunnel())
+    }
+}
+
+pub async fn get_ssh_tunnel_async(ms_timeout: u64) -> Option<config::SshTunnel> {
+    get_ssh_tunnel_(ms_timeout)
+        .await
+        .unwrap_or(Config::get_ssh_tunnel())
+}
+
+#[tokio::main(flavor = "current_thread")]
+pub async fn get_ssh_tunnel() -> Option<config::SshTunnel> {
+    get_ssh_tunnel_async(1_000).await
+}
+
+#[tokio::main(flavor = "current_thread")]
+pub async fn set_ssh_tunnel(value: config::SshTunnel) -> ResultType<()> {
+    let _nat = CheckTestNatType::new();
+    let value = if value.host.trim().is_empty() {
+        None
+    } else {
+        Some(value)
+    };
+    Config::set_ssh_tunnel(value.clone());
+    connect(1_000, "")
+        .await?
+        .send(&Data::SshTunnel(value))
+        .await?;
+    Ok(())
+}
+
+#[tokio::main(flavor = "current_thread")]
+pub async fn test_ssh_tunnel(value: config::SshTunnel) -> String {
+    let mut c = match connect(5_000, "").await {
+        Ok(c) => c,
+        Err(err) => return err.to_string(),
+    };
+    if c.send(&Data::TestSshTunnel(Some(Box::new(value))))
+        .await
+        .is_err()
+    {
+        return "Failed to send test request".to_owned();
+    }
+    match c.next_timeout(15_000).await {
+        Ok(Some(Data::TestSshTunnelResult(Some(err)))) => err,
+        _ => "Test failed: no response".to_owned(),
+    }
 }
 
 async fn get_socks_ws_(ms_timeout: u64) -> ResultType<(Option<config::Socks5Server>, String)> {

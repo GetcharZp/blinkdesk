@@ -524,6 +524,75 @@ pub fn set_socks(proxy: String, username: String, password: String) {
 }
 
 #[inline]
+pub fn get_ssh_tunnel() -> Vec<String> {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let s = ipc::get_ssh_tunnel();
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    let s = Config::get_ssh_tunnel();
+    match s {
+        None => Vec::new(),
+        Some(s) => vec![
+            s.host,
+            s.port.to_string(),
+            s.username,
+            s.password,
+            s.private_key,
+        ],
+    }
+}
+
+#[inline]
+pub fn set_ssh_tunnel(
+    host: String,
+    port: String,
+    username: String,
+    password: String,
+    private_key: String,
+) {
+    let ssh_tunnel = config::SshTunnel {
+        host,
+        port: port.trim().parse().unwrap_or_default(),
+        username,
+        password,
+        private_key,
+    };
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    ipc::set_ssh_tunnel(ssh_tunnel).ok();
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    Config::set_ssh_tunnel(if ssh_tunnel.host.trim().is_empty() {
+        None
+    } else {
+        Some(ssh_tunnel)
+    });
+}
+
+#[inline]
+pub fn test_ssh_tunnel(
+    host: String,
+    port: String,
+    username: String,
+    password: String,
+    private_key: String,
+) -> String {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        let cfg = config::SshTunnel {
+            host,
+            port: port.trim().parse().unwrap_or_default(),
+            username,
+            password,
+            private_key,
+        };
+        ipc::test_ssh_tunnel(cfg)
+    }
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        let _ = (host, port, username, password, private_key);
+        "Not supported on this platform".to_owned()
+    }
+}
+
+#[inline]
 #[cfg(feature = "flutter")]
 pub fn get_proxy_status() -> bool {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
