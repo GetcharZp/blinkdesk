@@ -35,10 +35,7 @@ BlinkDesk 是基于 [RustDesk](https://github.com/rustdesk/rustdesk) 开发的�
 ### 路线图
 
 - [x] 局域网直连（IP + 端口 + 密码）
-- [ ] SSH 隧道支持
-- [ ] SOCKS5 代理支持
-- [ ] 连接历史与收藏
-- [ ] 跨子网 / VLAN 穿透
+- [x] SSH 隧道支持
 
 ## 从源码构建
 

@@ -35,10 +35,7 @@ No rendezvous server, no relay server, no public network, no cloud account. Ever
 ### Roadmap
 
 - [x] LAN direct connection (IP + port + password)
-- [ ] SSH tunnel support
-- [ ] SOCKS5 proxy support
-- [ ] Connection history & favorites
-- [ ] Cross-subnet / VLAN traversal
+- [x] SSH tunnel support
 
 ## Build from source
 
