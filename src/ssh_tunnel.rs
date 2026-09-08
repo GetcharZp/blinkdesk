@@ -51,7 +51,7 @@ impl client::Handler for ClientHandler {
     // session already authenticates the peer over the encrypted tunnel.
     async fn check_server_key(
         &mut self,
-        _server_public_key: &PublicKeyOrCertificate,
+        _server_public_key: &PublicKey,
     ) -> Result<bool, Self::Error> {
         Ok(true)
     }
