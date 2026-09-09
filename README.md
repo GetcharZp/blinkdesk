@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="res/logo-header.svg" alt="BlinkDesk - LAN Remote Control"><br>
+  <img src="res/logo-header.png" alt="BlinkDesk - LAN Remote Control"><br>
   <a href="#features">Features</a> •
   <a href="#how-to-use">Usage</a> •
   <a href="#roadmap">Roadmap</a> •
@@ -16,7 +16,6 @@ It is built to fill the gap where dedicated remote-control tools are missing ins
 
 - **IP address** — LAN IP, e.g. `192.168.1.100`
 - **Port** — configurable, default `21118`
-- **Username**
 - **Password**
 
 No rendezvous server, no relay server, no public network, no cloud account. Everything stays inside your LAN.

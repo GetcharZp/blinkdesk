@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../res/logo-header.svg" alt="BlinkDesk - 局域网远程控制"><br>
+  <img src="../res/logo-header.png" alt="BlinkDesk - 局域网远程控制"><br>
   <a href="#功能特性">功能</a> •
   <a href="#使用方法">使用</a> •
   <a href="#路线图">路线图</a> •
@@ -16,7 +16,6 @@ BlinkDesk 是基于 [RustDesk](https://github.com/rustdesk/rustdesk) 开发的�
 
 - **IP 地址** —— 局域网 IP，例如 `192.168.1.100`
 - **端口** —— 可配置，默认 `21118`
-- **用户名**
 - **密码**
 
 全程在局域网内完成，数据不出内网。
