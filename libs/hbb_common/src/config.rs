@@ -3742,7 +3742,7 @@ mod tests {
     }
 
     #[test]
-    fn test_permanent_password_sync_rejects_non_current_storage_payloads() {
+    fn test_permanent_password_sync_skips_non_current_storage_payloads() {
         let invalid_payload = vec![42u8; sodiumoxide::crypto::secretbox::MACBYTES + 1];
         let invalid_storage = PERMANENT_PASSWORD_ENC_VERSION.to_owned()
             + &base64::encode(invalid_payload, base64::Variant::Original);
@@ -3760,10 +3760,10 @@ mod tests {
             &encrypted_non_hash,
         ] {
             let mut cfg = Config::default();
-            assert!(Config::apply_permanent_password_storage_for_sync(
+            assert!(!Config::apply_permanent_password_storage_for_sync(
                 &mut cfg, storage, "salt123"
             )
-            .is_err());
+            .unwrap());
             assert!(cfg.password.is_empty());
             assert!(cfg.salt.is_empty());
         }
@@ -3771,12 +3771,12 @@ mod tests {
         let mut cfg = Config::default();
         cfg.password = invalid_storage.clone();
         cfg.salt = "salt123".to_owned();
-        assert!(Config::apply_permanent_password_storage_for_sync(
+        assert!(!Config::apply_permanent_password_storage_for_sync(
             &mut cfg,
             &invalid_storage,
             "salt123"
         )
-        .is_err());
+        .unwrap());
         assert_eq!(cfg.password, invalid_storage);
         assert_eq!(cfg.salt, "salt123");
     }
