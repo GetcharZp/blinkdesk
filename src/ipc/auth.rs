@@ -1017,7 +1017,7 @@ mod tests {
     #[cfg(windows)]
     fn test_executable_paths_match_windows_normalization() {
         let left = std::path::PathBuf::from(r"\\?\C:\Program Files\BlinkDesk\BlinkDesk.exe");
-        let right = std::path::PathBuf::from(r"c:\program files\rustdesk\rustdesk.exe");
+        let right = std::path::PathBuf::from(r"c:\program files\blinkdesk\blinkdesk.exe");
         assert!(super::executable_paths_match(&left, &right));
     }
 
