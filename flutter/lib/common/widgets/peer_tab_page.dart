@@ -50,9 +50,20 @@ class _PeerTabPageState extends State<PeerTabPage>
     _TabEntry(FavoritePeersView(
       menuPadding: _menuPadding(),
     )),
-    _TabEntry(DiscoveredPeersView(
-      menuPadding: _menuPadding(),
-    )),
+    _TabEntry(
+        DiscoveredPeersView(
+          menuPadding: _menuPadding(),
+        ),
+        ({dynamic hint}) async {
+          if (gFFI.lanDiscoveryLoading.value) return;
+          gFFI.lanDiscoveryLoading.value = true;
+          try {
+            await bind.mainDiscover();
+            await bind.mainLoadLanPeers();
+          } finally {
+            gFFI.lanDiscoveryLoading.value = false;
+          }
+        }),
     _TabEntry(
         AddressBook(
           menuPadding: _menuPadding(),
@@ -554,6 +565,8 @@ class _PeerTabPageState extends State<PeerTabPage>
     return [
       const PeerSearchBar().marginOnly(right: 13),
       _createRefresh(
+          index: PeerTabIndex.lan, loading: gFFI.lanDiscoveryLoading),
+      _createRefresh(
           index: PeerTabIndex.ab, loading: gFFI.abModel.currentAbLoading),
       _createRefresh(
           index: PeerTabIndex.group, loading: gFFI.groupModel.groupLoading),
@@ -620,6 +633,9 @@ class _PeerTabPageState extends State<PeerTabPage>
     // Always show search, refresh
     List<Widget> actions = [
       const PeerSearchBar(),
+      if (model.currentTab == PeerTabIndex.lan.index)
+        _createRefresh(
+            index: PeerTabIndex.lan, loading: gFFI.lanDiscoveryLoading),
       if (model.currentTab == PeerTabIndex.ab.index)
         _createRefresh(
             index: PeerTabIndex.ab, loading: gFFI.abModel.currentAbLoading),

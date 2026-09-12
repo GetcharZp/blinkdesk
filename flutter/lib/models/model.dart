@@ -3734,6 +3734,7 @@ class FFI {
   late final Peers recentPeersModel; // global
   late final Peers favoritePeersModel; // global
   late final Peers lanPeersModel; // global
+  final lanDiscoveryLoading = false.obs; // global
 
   // Terminal model registry for multiple terminals
   final Map<int, TerminalModel> _terminalModels = {};
